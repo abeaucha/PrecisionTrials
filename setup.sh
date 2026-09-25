@@ -1,6 +1,10 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+# Resolve project files relative to this script, regardless of the caller's directory.
+PROJECT_ROOT=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)
+cd "$PROJECT_ROOT"
+
 # Path to conda installation
 CONDA_PATH=$(conda info --base)
 
@@ -70,3 +74,8 @@ conda run -n "$ENV_NAME" --no-capture-output Rscript -e 'library(MRIcrotome); ca
 echo -e "\nInstalling python packages using pip..."
 conda run -n "$ENV_NAME" --no-capture-output python -m pip install -r python_packages_pip.txt
 conda run -n "$ENV_NAME" --no-capture-output python -c 'import utils; from pyminc.volumes.factory import volumeFromFile; print("utils and pyminc imported successfully")'
+
+# Install the project's Python package in editable mode.
+echo -e "\nInstalling precision_trials..."
+conda run -n "$ENV_NAME" --no-capture-output python -m pip install -e "$PROJECT_ROOT"
+conda run -n "$ENV_NAME" --no-capture-output python -c 'import precision_trials; print("precision_trials installed from", precision_trials.__file__)'
