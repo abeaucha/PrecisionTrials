@@ -25,17 +25,13 @@ else
   conda create -n "$MINC_ENV_NAME" -c minc-forge minc-toolkit-v2 -y
 fi
 
-# # Create conda environment and install R
-echo -e "\nBuilding R environment..."
-conda create -n $ENV_NAME -c conda-forge r-base=4.5.3 python=3.14.7 -y
-
-# # Install compiled R packages via conda (faster)
-echo -e "\nInstalling R packages..."
-conda install -n $ENV_NAME -c conda-forge --file R_packages_test.txt -y
-
-# # Install python packages via conda
-echo -e "\nInstalling python packages..."
-conda install -n $ENV_NAME -c conda-forge --file python_packages_test.txt -y
+# Resolve and install R, Python, and their Conda packages together
+echo -e "\nBuilding project environment..."
+conda create -n "$ENV_NAME" -c conda-forge \
+  r-base=4.5.3 python=3.14.7 \
+  --file R_packages_conda.txt \
+  --file python_packages_conda.txt \
+  -y
 
 mkdir -p "${ENV_PATH}/etc/conda/activate.d" "${ENV_PATH}/etc/conda/deactivate.d"
 
