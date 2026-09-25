@@ -1,0 +1,72 @@
+---
+title: "Mathematical musings on a framework for precision health in neurodevelopmental disorders"
+author: Antoine Beauchamp
+date: "September 17, 2026"
+format: html
+editor: visual
+embed-resources: true
+---
+
+## Overview
+
+## The sample set
+
+We begin by considering a sample set of participants $\mathcal{S} = \{s_1, s_2, ..., s_n\}$. For the purposes of our investigation, $\mathcal{S}$ is the POND sample.
+
+## Participant datasets and data modalities
+
+Each participant $s_i \in \mathcal{S}$ is associated with a **participant dataset** $D_i$, which is *the complete collection of observations available for participant* $i$. Furthermore, we can decompose $D_i$ into a collection of **data modalities**, such that
+
+$$D_i = \{D_i^{(1)}, D_i^{(2)}, ..., D_i^{(m)}\}$$
+
+with $D_i^{(j)}$ representing the participant's data in the $j$th modality. Here "modality" is used in a flexible manner to describe data belonging to a common domain. For example, the set of modalities could be something like $\{$ anatomical MRI, functional MRI, WGS, ... $\}$, or perhaps $\{$ Jacobian determinant images, regional cortical thickness, fractional anisotropy images, ... $\}$, etc. The exact partitioning of the modalities will be clarified down the line as the structure of the framework comes into greater focus. We note that different participants may not have data across all possible modalities. In other words, $|D_i| \neq |D_j|$ generally. For instance, participant $s_i$ may have imaging data while $s_j$ may not.
+
+The important points here are
+
+1.  Participant data is defined as data that is *measured directly on a study participant*
+2.  Participant data can be categorized into different modalities
+
+We call the collection of all participant datasets the **study dataset** and denote it with $\mathcal{D} = \{D_i\}_{i=1}^n$. Once again, for our purposes we consider the study dataset to be the POND dataset.
+
+## Knowledge resources
+
+In addition to the study dataset $\mathcal{D}$, we define a set of **knowledge resources**:
+
+$$\mathcal{K} = \{K^{(1)}, K^{(2)}, ..., K^{(r)}\} \quad .$$
+
+We allow these objects to be loosely defined, but they will more often than not consist of *data resources that are not directly measured on the study participants*. Some examples include:
+
+- The MICe database of NDD-related mouse models
+- The Allen Human Brain Atlas (AHBA) microarray gene expression dataset
+
+The role of knowledge resources in this project will generally be to augment the participant datasets with biological information that is not readily available in $\mathcal{D}$ itself. As the project evolves and the state of the science progresses, additional knowledge resources can be added to the set.
+
+## Evidence modules and biological profiles
+
+We wish to construct a collection of **biological evidence modules**
+
+$$\mathcal{M} = \{M^{(1)}, M^{(2)}, ..., M^{(q)}\}$$
+
+whose individual purpose is to produce a participant's putative **biological profile**, $B_{i}^{(k)}$, given the participant's dataset $D_i$ and a subset of knowledge resources $\mathcal{R}^{(k)} \subseteq \mathcal{K}$. In other words, for a given participant $s_i$, the evidence module can be thought of as an operator:
+
+$$B_{i}^{(k)} = M^{(k)}(D_i, \mathcal{R}^{(k)}) \quad\quad .$$
+
+While not explicitly indicated, a given evidence module $M^{(k)}$ is likely to operate only on a subset of the modalities in the participant dataset $D_i$. Additionally, we allow the subset of knowledge resources to be the null set, i.e. $\mathcal{R}^{(k)} = \emptyset$, if a given evidence module only requires the participant data to operate.
+
+The evidence modules are the engines of this framework, and are meant to provide evidence about the participants' biological state based on analyses using the participant's data and a (possibly empty) collection of knowledge resources. Individual evidence modules can be as simple or complex as needed to produce the biological information given the particular inputs.
+
+## The evidence integration operator
+
+The complete set of evidence modules $\mathcal{M}$ produces a corresponding set of biological profiles for participant $s_i$:
+
+$$\mathcal{B_i} = \{B_i^{(1)}, B_i^{(2)}, ..., B_i^{(q)}\} \quad\quad .$$
+
+This set represents the individual pieces of evidence available about the biology for participant $s_i$, based on the analyses implemented within each of the evidence modules. We wish to integrate the information and evidence contained in this set. To this end, we consider an **integration operator**, $F$, which evaluates the individual sources of evidence, weighs them, and produces a final biological profile for participant $s_i$:
+
+$$B_i = F(B_i^{(1)}, ..., B_i^{(q)})$$
+
+## Questions to ponder
+
+- How do replication datasets fit into this? External datasets like HBN might not have the same modalities as POND. I'm thinking of the POND sample as the central pillar for this framework, but maybe that isn't the best way to think of it.
+- Do we wish for all $B_i^{(k)}$ to be the same? This would facilitate the integration operation, but maybe is too constraining for the individual evidence modules. A simple example of the biological profiles would be a vector of weights over various biological pathways from Reactome or GO.
+- How much heavy lifting do we want the evidence modules to perform in terms preprocessing. Another way to think about this is: what sets of inputs do we want to pass to the modules? Or what do we consider modalities for the participant datasets $D_i$? For instance, do we wish all modules relying on anatomical MRI to take in T1w NIfTIs as input? That would move things like image registration or regional parcellation into the module itself.
