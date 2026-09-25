@@ -1,4 +1,8 @@
+# Directories
 data/
+docs/
 knowledge/
+
+# Symbolic links
 data
 knowledge
