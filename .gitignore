@@ -7,3 +7,7 @@ knowledge/
 # Symbolic links
 data
 knowledge
+
+# Python package metadata and bytecode
+*.egg-info/
+__pycache__/
