@@ -10,3 +10,9 @@ knowledge
 # Python package metadata and bytecode
 *.egg-info/
 __pycache__/
+
+# Jupyter Notebook checkpoints
+.ipynb_checkpoints/
+
+# OS generated files
+.DS_Store
