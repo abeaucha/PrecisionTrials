@@ -1,18 +1,21 @@
-from pathlib import Path
 
-class ImagingDataset:
+
+from pathlib import Path
+from precision_trials.datasets.core import ModalitySet
+
+class ImagingDataset():
 
     def __init__(self):
         self._modalities = {}
 
     def __repr__(self):
         if not self._modalities:
-            return "ImagingDataset(empty)"
+            return "ImagingDataset()"
 
-        # out = f"ImagingDataset(\n{list(self._modalities.values())}\n)"
-        # out = f"ImagingDataset(\n{"\n".join(str(x) for x in self._modalities.values())}\n)"
-        out = f"ImagingDataset({list(self._modalities.keys())})"
-        return out
+        return f"ImagingDataset({list(self._modalities.keys())})"
+
+    def __len__(self):
+        return len(self._modalities)
 
     def add(self, modality):
         self._modalities[modality.key] = modality
@@ -25,7 +28,11 @@ class ImagingDataset:
         return self._modalities[key]
 
 
-class T1wImages:
+class ImagingModality:
+    pass
+
+
+class T1wImages(ImagingModality):
 
     def __init__(self, data_dir = "data/imaging/anatomical"):
         self.data_dir = Path(data_dir)
@@ -43,7 +50,7 @@ class T1wImages:
         pass
 
 
-class JacobianImages:
+class JacobianImages(ImagingModality):
 
     _VALID_JACOBIAN_TYPES = {"relative", "absolute"}
     
@@ -64,7 +71,17 @@ class JacobianImages:
     def __repr__(self):
         out = f"{self.__class__.__name__}(jacobian_type = {self.jacobian_type})"
         return out
-        
+
+    def __len__(self):
+        # Count the number of .mnc files in the image_dir
+        if not self.image_dir.exists():
+            return 0
+        return len(list(self.image_dir.glob("*.mnc")))
+
+    @property
+    def image_files(self):
+        return [f for f in sorted(self.image_dir.iterdir())]
+
     @property
     def key(self):
         return f"{self.__class__.__name__}:{self.jacobian_type}"
@@ -74,7 +91,7 @@ class JacobianImages:
 
 
 
-class EffectSizeImages:
+class EffectSizeImages(ImagingModality):
 
     _VALID_JACOBIAN_TYPES = {"relative", "absolute"}
     
@@ -95,8 +112,17 @@ class EffectSizeImages:
     def __repr__(self):
         out = f"{self.__class__.__name__}(jacobian_type = {self.jacobian_type})"
         return out
-        
 
+    def __len__(self):
+        # Count the number of .mnc files in the image_dir
+        if not self.image_dir.exists():
+            return 0
+        return len(list(self.image_dir.glob("*.mnc")))
+
+    @property
+    def image_files(self):
+        return [f for f in sorted(self.image_dir.iterdir())]
+        
     @property
     def key(self):
         return f"{self.__class__.__name__}:{self.jacobian_type}"
