@@ -7,6 +7,13 @@ class BehaviourDataset:
 
     def __repr__(self):
         if not self._modalities:
-            return "BehaviourDataset(empty)"
+            return "BehaviourDataset()"
         out = f"BehaviourDataset({list(self._modalities.keys())})"
         return out
+
+    def __len__(self):
+        return len(self._modalities)
+
+
+class BehaviourModality:
+    pass
