@@ -1,6 +1,6 @@
 from pathlib import Path
 
-class KnowledgeCollection:
+class KnowledgeResources:
 
     def __init__(self):
         pass

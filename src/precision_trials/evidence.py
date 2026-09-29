@@ -10,7 +10,7 @@ class AHBADecodingModule(EvidenceModule):
 
     def __init__(self, resources = None):
         if resources is None:
-            resources = knowledge.KnowledgeCollection()
+            resources = knowledge.KnowledgeResources()
             resources.add("AllenHumanBrainAtlas", knowledge.AllenHumanBrainAtlas())
             resources.add("ReactomePathwayDatabase", knowledge.ReactomePathwayDatabase())
 
