@@ -10,7 +10,7 @@ def _extract_voxel_values(img, coords):
     Extract voxel values from a MINC image at specified coordinates.
 
     """
-    img_vol = volumeFromFile(img)
+    img_vol = volumeFromFile(str(img))
     img_vals = np.zeros(coords.shape[0])
     for i, row in coords.iterrows():
         coords_world = np.array([row['x'], row['y'], row['z']])
