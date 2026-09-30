@@ -73,3 +73,4 @@ def correlate_matrices(x, y, batch_size = None):
         correlations[:, start:stop] = correlations_batch
 
     return correlations
+
