@@ -1,6 +1,7 @@
 import numpy as np
 import pandas as pd
 from precision_trials import knowledge, utils
+from precision_trials.datasets.core import ParticipantDataset
 
 
 
@@ -16,13 +17,24 @@ class AHBADecodingModule(EvidenceModule):
     def __init__(self, resources = None):
         if resources is None:
             resources = knowledge.KnowledgeResources()
-            resources.add("AllenHumanBrainAtlas", knowledge.AllenHumanBrainAtlas())
-            resources.add("ReactomePathwayDatabase", knowledge.ReactomePathwayDatabase())
+            resources.add(knowledge.AllenHumanBrainAtlas())
+            resources.add(knowledge.ReactomePathwayDatabase())
 
         super().__init__(resources)
 
     
-    def run(self, data, batch_size = 50):
+    def run(self, data, batch_size = 50, n_files = None, n_jobs = 1):
+
+        """
+
+        """
+
+        # Ensure data is ParticipantDataset object
+        if not isinstance(data, ParticipantDataset):
+            raise TypeError(
+                f"Expected {ParticipantDataset.__name__}, "
+                f"got {type(data).__name__}."
+            )
 
         # Ensure data contains only 1 imaging modality
         if len(data.imaging) != 1:
@@ -35,18 +47,22 @@ class AHBADecodingModule(EvidenceModule):
 
         # Fetch image files
         img_files = imgs.image_files
+        if n_files is not None:
+            img_files = img_files[:n_files]
 
         # Import AHBA microarray coordinates
-        coords = pd.read_csv(self.resources.AllenHumanBrainAtlas.coordinates_file)
+        # coords = pd.read_csv(self.resources.AllenHumanBrainAtlas.coordinates_file)
+        coords = self.resources.get("AllenHumanBrainAtlas").load_coordinates()
 
         # Extract voxel values at coordinates
-        voxel_vals = utils.extract_voxel_values(img_files, coords)
+        voxel_vals = utils.extract_voxel_values(img_files, coords, n_jobs = n_jobs)
 
         # Convert voxel values to df
-        df_voxels = pd.DataFrame(voxel_vals, index = pd.Index(img_files, name = "path"), columns = coords["sample_id"])
+        df_voxels = pd.DataFrame(voxel_vals, index = pd.Index(img_files, name = "path"), columns = coords.index)
 
         # Import microarray gene expression data
-        df_expression = pd.read_csv(self.resources.AllenHumanBrainAtlas.expression_file, index_col = "Gene")
+        # df_expression = pd.read_csv(self.resources.AllenHumanBrainAtlas.expression_file, index_col = "Gene")
+        df_expression = self.resources.get("AllenHumanBrainAtlas").load_expression()
 
         # Compute image-gene correlation matrix
         correlations = np.full((len(df_expression), len(df_voxels)), 0.0, dtype=np.float64)

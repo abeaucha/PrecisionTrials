@@ -12,7 +12,8 @@ def _extract_voxel_values(img, coords):
     """
     img_vol = volumeFromFile(str(img))
     img_vals = np.zeros(coords.shape[0])
-    for i, row in coords.iterrows():
+    # for i, row in coords.iterrows():
+    for i, (idx, row) in enumerate(coords.iterrows()):
         coords_world = np.array([row['x'], row['y'], row['z']])
         coords_voxel = img_vol.convertWorldToVoxel(coords_world)
         coords_voxel = np.round(coords_voxel)
