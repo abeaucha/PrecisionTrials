@@ -1,19 +1,28 @@
 
+from abc import ABC, abstractmethod
+from pathlib import Path
 
-class BehaviourDataset:
+class BehaviourModality(ABC):
 
-    def __init__(self):
-        self._modalities = {}
+    def __init__(self, data_dir = "data/behaviour"):
+        self.data_dir = Path(data_dir)
 
     def __repr__(self):
-        if not self._modalities:
-            return "BehaviourDataset()"
-        out = f"BehaviourDataset({list(self._modalities.keys())})"
-        return out
+        return f"{self.__class__.__name__}"
+        
+    @property
+    def key(self):
+        return f"{self.__class__.__name__}"
+
+    @abstractmethod
+    def __len__(self):
+        pass
+
+
+class BehaviourTest(BehaviourModality):
+
+    def __init__(self, data_dir = "data/behaviour"):
+        super().__init__(data_dir)
 
     def __len__(self):
-        return len(self._modalities)
-
-
-class BehaviourModality:
-    pass
+        pass

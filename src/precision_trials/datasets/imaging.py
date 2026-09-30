@@ -1,50 +1,43 @@
 
 
+from abc import ABC, abstractmethod
 from pathlib import Path
-from precision_trials.datasets.core import ModalitySet
-
-class ImagingDataset():
-
-    def __init__(self):
-        self._modalities = {}
-
-    def __repr__(self):
-        if not self._modalities:
-            return "ImagingDataset()"
-
-        return f"ImagingDataset({list(self._modalities.keys())})"
-
-    def __len__(self):
-        return len(self._modalities)
-
-    def add(self, modality):
-        self._modalities[modality.key] = modality
-
-    @property
-    def modalities(self):
-        return self._modalities
-
-    def get(self, key):
-        return self._modalities[key]
 
 
-class ImagingModality:
-    pass
 
+class ImagingModality(ABC):
 
-class T1wImages(ImagingModality):
-
-    def __init__(self, data_dir = "data/imaging/anatomical"):
+    def __init__(self, data_dir = "data/imaging/"):
         self.data_dir = Path(data_dir)
-        self.image_dir = self.data_dir / "T1w"
 
     def __repr__(self):
-        out = f"{self.__class__.__name__}"
-        return out
+        return f"{self.__class__.__name__}"
         
     @property
     def key(self):
         return f"{self.__class__.__name__}"
+
+    @abstractmethod
+    def __len__(self):
+        pass
+
+
+
+class T1wImages(ImagingModality):
+
+    def __init__(self, data_dir = "data/imaging/anatomical/"):
+        super().__init__(data_dir)
+        self.image_dir = self.data_dir / "T1w"
+
+    def __len__(self):
+        # Count the number of .mnc files in the image_dir
+        if not self.image_dir.exists():
+            return 0
+        return len(list(self.image_dir.glob("*.mnc")))
+        
+    @property
+    def image_files(self):
+        return [f for f in sorted(self.image_dir.iterdir())]
     
     def load_images(self):
         pass
@@ -54,7 +47,7 @@ class JacobianImages(ImagingModality):
 
     _VALID_JACOBIAN_TYPES = {"relative", "absolute"}
     
-    def __init__(self, data_dir = "data/imaging/anatomical", jacobian_type = "relative"):
+    def __init__(self, data_dir = "data/imaging/anatomical/", jacobian_type = "relative"):
 
         if jacobian_type not in self._VALID_JACOBIAN_TYPES:
             raise ValueError(
@@ -62,15 +55,15 @@ class JacobianImages(ImagingModality):
                 f"Must be one of {sorted(self._VALID_JACOBIAN_TYPES)}."
             )
         
+        super().__init__(data_dir)
+
         self.jacobian_type = jacobian_type
-        self.data_dir = Path(data_dir)
         self.template_file = self.data_dir / "reference-files/model_3.0mm.mnc"
         self.mask_file = self.data_dir / "reference-files/mask_3.0mm.mnc"
         self.image_dir = self.data_dir / f"jacobians-{self.jacobian_type}"
 
     def __repr__(self):
-        out = f"{self.__class__.__name__}(jacobian_type = {self.jacobian_type})"
-        return out
+        return f"{self.__class__.__name__}(jacobian_type={self.jacobian_type})"
 
     def __len__(self):
         # Count the number of .mnc files in the image_dir
@@ -79,63 +72,52 @@ class JacobianImages(ImagingModality):
         return len(list(self.image_dir.glob("*.mnc")))
 
     @property
+    def key(self):
+        return f"{super().key}:{self.jacobian_type}"
+
+    @property
     def image_files(self):
         return [f for f in sorted(self.image_dir.iterdir())]
 
-    @property
-    def key(self):
-        return f"{self.__class__.__name__}:{self.jacobian_type}"
-    
     def load_images(self):
         pass
-
 
 
 class EffectSizeImages(ImagingModality):
 
     _VALID_JACOBIAN_TYPES = {"relative", "absolute"}
-    
-    def __init__(self, data_dir = "data/imaging/anatomical", jacobian_type = "relative"):
+
+    def __init__(self, data_dir = "data/imaging/anatomical/", jacobian_type = "relative"):
 
         if jacobian_type not in self._VALID_JACOBIAN_TYPES:
             raise ValueError(
                 f"Invalid jacobian_type '{jacobian_type}'. "
                 f"Must be one of {sorted(self._VALID_JACOBIAN_TYPES)}."
             )
-        
+
+        super().__init__(data_dir)
+
         self.jacobian_type = jacobian_type
-        self.data_dir = Path(data_dir)
         self.template_file = self.data_dir / "reference-files/model_3.0mm.mnc"
         self.mask_file = self.data_dir / "reference-files/mask_3.0mm.mnc"
         self.image_dir = self.data_dir / f"effect-sizes-{self.jacobian_type}"
 
     def __repr__(self):
-        out = f"{self.__class__.__name__}(jacobian_type = {self.jacobian_type})"
-        return out
-
+        return f"{self.__class__.__name__}(jacobian_type={self.jacobian_type})"
+    
     def __len__(self):
         # Count the number of .mnc files in the image_dir
         if not self.image_dir.exists():
             return 0
         return len(list(self.image_dir.glob("*.mnc")))
+    
+    @property
+    def key(self):
+        return f"{super().key}:{self.jacobian_type}"
 
     @property
     def image_files(self):
         return [f for f in sorted(self.image_dir.iterdir())]
         
-    @property
-    def key(self):
-        return f"{self.__class__.__name__}:{self.jacobian_type}"
-
-    # Allows on the fly computation if jacobian_type is reassigned in an instance
-    # @property
-    # def image_dir(self):
-    #     return self.data_dir / f"effect-sizes-{self.jacobian_type}"
-    
     def load_images(self):
         pass
-
-    
-
-
-

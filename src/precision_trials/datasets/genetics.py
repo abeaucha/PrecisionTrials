@@ -1,19 +1,29 @@
 
+from abc import ABC, abstractmethod
+from pathlib import Path
 
-class GeneticsDataset:
-
-    def __init__(self):
-        self._modalities = {}
+class GeneticsModality(ABC):
+    
+    def __init__(self, data_dir = "data/genetics"):
+        self.data_dir = Path(data_dir)
 
     def __repr__(self):
-        if not self._modalities:
-            return "GeneticsDataset()"
-        out = f"GeneticsDataset({list(self._modalities.keys())})"
-        return out
+        return f"{self.__class__.__name__}"
+        
+    @property
+    def key(self):
+        return f"{self.__class__.__name__}"
+
+    @abstractmethod
+    def __len__(self):
+        pass
+
+
+
+class GeneticsTest(GeneticsModality):
+
+    def __init__(self, data_dir = "data/genetics"):
+        super().__init__(data_dir)
 
     def __len__(self):
-        return len(self._modalities)
-
-
-class GeneticsModality:
-    pass
+        pass
