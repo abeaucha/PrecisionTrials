@@ -74,5 +74,7 @@ class AllenHumanBrainAtlas(KnowledgeResource):
 
 class ReactomePathwayDatabase(KnowledgeResource):
 
-    def __init__(self, knowledge_dir = "knowledge/"):
+    def __init__(self, knowledge_dir = "knowledge/ReactomePathwayDatabase"):
         self.knowledge_dir = Path(knowledge_dir)
+        self.mappings_file = self.knowledge_dir / "Human_Reactome_June_01_2025_symbol.gmt"
+        self.background_file = self.knowledge_dir / "sagittal_gene_table_normalized_filtered.csv"
