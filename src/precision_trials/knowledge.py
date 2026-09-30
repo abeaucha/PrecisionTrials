@@ -9,9 +9,6 @@ class KnowledgeResources:
         self.resources = {}
         self.add(*resources)
 
-    # def add(self, name, resource):
-    #     setattr(self, name, resource)
-
     def __repr__(self):
         if not self.resources:
             return f"{self.__class__.__name__}()"
@@ -58,15 +55,19 @@ class AllenHumanBrainAtlas(KnowledgeResource):
         self.annotations_file = self.knowledge_dir / "AHBA_microarray_sample_annotations.csv"
 
     def load_expression(self, index_col = "Gene"):
+        """Load AHBA microarray expression data"""
         return pd.read_csv(self.expression_file, index_col = index_col)
 
     def load_metadata(self, index_col = "sample_id"):
+        """Load AHBA microarray metadata"""
         return pd.read_csv(self.metadata_file, index_col = index_col)
 
     def load_coordinates(self, index_col = "sample_id"):
+        """Load AHBA microarray sample coordinates"""
         return pd.read_csv(self.coordinates_file, index_col = index_col)
 
     def load_annotations(self, index_col = "sample_id"):
+        """Load AHBA microarray sample quality annotations"""
         return pd.read_csv(self.annotations_file, index_col = index_col)
 
 

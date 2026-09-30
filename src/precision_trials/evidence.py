@@ -51,7 +51,6 @@ class AHBADecodingModule(EvidenceModule):
             img_files = img_files[:n_files]
 
         # Import AHBA microarray coordinates
-        # coords = pd.read_csv(self.resources.AllenHumanBrainAtlas.coordinates_file)
         coords = self.resources.get("AllenHumanBrainAtlas").load_coordinates()
 
         # Extract voxel values at coordinates
@@ -61,7 +60,6 @@ class AHBADecodingModule(EvidenceModule):
         df_voxels = pd.DataFrame(voxel_vals, index = pd.Index(img_files, name = "path"), columns = coords.index)
 
         # Import microarray gene expression data
-        # df_expression = pd.read_csv(self.resources.AllenHumanBrainAtlas.expression_file, index_col = "Gene")
         df_expression = self.resources.get("AllenHumanBrainAtlas").load_expression()
 
         # Compute image-gene correlation matrix

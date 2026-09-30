@@ -25,8 +25,8 @@ class ModalityDataset:
         Class attribute defining the accepted type. Instances of its
         subclasses are also accepted.
     modalities : dict
-        Mapping from modality keys to the original objects, in insertion
-        order. Objects are stored by reference without copying or loading
+        Mapping from modality keys to the original objects.
+        Objects are stored by reference without copying or loading
         their data. Keys are captured when objects are added; later changes
         to an object's key do not update this mapping automatically.
 
