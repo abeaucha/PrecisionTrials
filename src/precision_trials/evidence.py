@@ -23,7 +23,7 @@ class AHBADecodingModule(EvidenceModule):
         super().__init__(resources)
 
     
-    def run(self, data, batch_size = 50, n_files = None, n_jobs = 1):
+    def run(self, data, gene_set = None, batch_size = 50, n_files = None, n_jobs = 1):
 
         """
 
@@ -65,16 +65,22 @@ class AHBADecodingModule(EvidenceModule):
         df_expression = self.resources.get("AllenHumanBrainAtlas").load_expression()
 
         # Compute image-gene correlation matrix
-        correlations = np.full((len(df_expression), len(df_voxels)), 0.0, dtype=np.float64)
-        for start in range(0, len(df_voxels), batch_size):
-            stop = min(start + batch_size, len(df_voxels))
-            df_voxels_batch = df_voxels.iloc[start:stop]
-            correlations_batch = utils.correlate_matrices(x = df_expression.to_numpy(), 
-                                                          y = df_voxels_batch.to_numpy())
-
-            # Output rows are genes; output columns are images.
-            correlations[:, start:stop] = correlations_batch
+        correlations = utils.correlate_matrices(x = df_expression.to_numpy(), 
+                                                y = df_voxels.to_numpy(),
+                                                batch_size = batch_size)
 
         self.correlations = correlations
+
+        if gene_set is None:
+
+            order = np.argsort(correlations, axis = 0)[::-1]
+
+            correlations_ordered = np.take_along_axis(correlations, order, axis=0)
+
+            genes = df_expression.index.to_numpy()
+
+            genes_ranked = genes[order]
+
+
 
         return

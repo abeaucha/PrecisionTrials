@@ -57,8 +57,19 @@ def normalize_rows(values):
     return normalized
 
 
-def correlate_matrices(x, y):
+def correlate_matrices(x, y, batch_size = None):
+
+    if batch_size is None:
+        batch_size = len(y)
+
     x_normed = normalize_rows(x)
-    y_normed = normalize_rows(y)
-    correlations = x_normed @ y_normed.T
+
+    correlations = np.full((len(x), len(y)), 0.0, dtype=np.float64)
+    for start in range(0, len(y), batch_size):
+        stop = min(start + batch_size, len(y))
+        y_batch = y[start:stop,:]
+        y_batch_normed = normalize_rows(y_batch)
+        correlations_batch = x_normed @ y_batch_normed.T
+        correlations[:, start:stop] = correlations_batch
+
     return correlations
