@@ -16,3 +16,8 @@ __pycache__/
 
 # OS generated files
 .DS_Store
+.positai
+
+# R files
+.Rproj.user
+.Rhistory
