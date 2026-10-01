@@ -42,6 +42,26 @@ class AHBADecodingModule(EvidenceModule):
                 "AHBADecodingModule requires exactly one imaging modality."
             )
 
+        correlations, genes, img_files = self._compute_gene_correlations(data, batch_size = batch_size,
+                                                                          n_files = n_files, n_jobs = n_jobs)
+
+        enrichment = self._run_gsea(correlations, genes)
+
+        # if gene_set is None:
+        #     order = np.argsort(correlations, axis = 0)[::-1]
+        #     correlations_ordered = np.take_along_axis(correlations, order, axis=0)
+        #     genes = df_expression.index.to_numpy()
+        #     genes_ranked = genes[order]
+
+        return
+
+
+
+    def _compute_gene_correlations(self, data, batch_size = 50, n_files = None, n_jobs = 1):
+
+        """
+        """
+
         # Extract imaging modality
         imgs = list(data.imaging.modalities.values())[0]
 
@@ -49,8 +69,6 @@ class AHBADecodingModule(EvidenceModule):
         img_files = imgs.image_files
         if n_files is not None:
             img_files = img_files[:n_files]
-
-        self.image_files = img_files
 
         # Import AHBA microarray coordinates
         coords = self.resources.get("AllenHumanBrainAtlas").load_coordinates()
@@ -64,19 +82,19 @@ class AHBADecodingModule(EvidenceModule):
         # Import microarray gene expression data
         df_expression = self.resources.get("AllenHumanBrainAtlas").load_expression()
 
-        self.genes = df_expression.index.to_numpy()
+        genes = df_expression.index.to_numpy()
 
         # Compute image-gene correlation matrix
         correlations = utils.correlate_matrices(x = df_expression.to_numpy(), 
                                                 y = df_voxels.to_numpy(),
                                                 batch_size = batch_size)
 
-        self.correlations = correlations
+        return correlations, genes, img_files
 
-        # if gene_set is None:
-        #     order = np.argsort(correlations, axis = 0)[::-1]
-        #     correlations_ordered = np.take_along_axis(correlations, order, axis=0)
-        #     genes = df_expression.index.to_numpy()
-        #     genes_ranked = genes[order]
 
-        return
+class FGSEABackend:
+
+    def run(self, ranks, genes, gene_set = None):
+        """
+
+        """
