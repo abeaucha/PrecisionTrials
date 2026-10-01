@@ -1,6 +1,7 @@
 utils==1.0.2
 pyminc==0.57
 brainsmash==0.11.0
+brainsmash @ git+https://github.com/abeaucha/brainsmash.git@318974dfbec60df4dcb59b47e998dff3e0b20cb3
 
 # Not working on arm64
 # datatable==1.1.0
