@@ -1,8 +1,54 @@
+import os
+import re
+import subprocess
+from numbers import Real
+
 import numpy as np
 import pandas as pd
 from concurrent.futures import ProcessPoolExecutor
 from itertools import repeat
 from pyminc.volumes.factory import volumeFromFile
+
+
+def run_r_script(script, *, rscript_executable="Rscript", **kwargs):
+    """Run an R script with optparse-style options and capture its output.
+
+    ``script`` is a path (relative to the current working directory or absolute).
+    Rscript is found on PATH; activate the desired conda environment first, or
+    provide its executable path via ``rscript_executable``.
+
+    Underscores in option names become hyphens. Strings, numbers, and paths
+    become ``--name=value`` arguments. True adds a standalone flag (for
+    optparse's ``action="store_true"``); False and None omit the option. For
+    options with ``type="logical"``, pass the strings "TRUE" or "FALSE".
+    Collections are rejected: serialize them in the format your R script uses.
+
+    Returns a subprocess.CompletedProcess with text stdout and stderr. Raises
+    subprocess.CalledProcessError on a nonzero exit status; the exception also
+    contains stdout and stderr. Arguments are passed directly without a shell.
+
+    Example::
+
+        result = run_r_script("analysis.R", batch_size=100, verbose=True)
+        print(result.stdout)
+        result = run_r_script("analysis.R", **{"batch_size": 100})
+    """
+    command = [os.fspath(rscript_executable), os.fspath(script)]
+    for name, value in kwargs.items():
+        option = name.replace("_", "-")
+        if not re.fullmatch(r"[A-Za-z][A-Za-z0-9-]*", option):
+            raise ValueError(f"Invalid R option name: {name!r}")
+        if value is None or value is False:
+            continue
+        if value is True:
+            command.append(f"--{option}")
+        elif isinstance(value, (str, Real, os.PathLike)):
+            value = os.fsdecode(value) if isinstance(value, os.PathLike) else str(value)
+            command.append(f"--{option}={value}")
+        else:
+            raise TypeError(f"Unsupported value for {name!r}: {type(value).__name__}")
+
+    return subprocess.run(command, check=True, capture_output=True, text=True)
 
 
 def _extract_voxel_values(img, coords):
