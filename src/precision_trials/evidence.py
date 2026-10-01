@@ -50,6 +50,8 @@ class AHBADecodingModule(EvidenceModule):
         if n_files is not None:
             img_files = img_files[:n_files]
 
+        self.image_files = img_files
+
         # Import AHBA microarray coordinates
         coords = self.resources.get("AllenHumanBrainAtlas").load_coordinates()
 
@@ -62,6 +64,8 @@ class AHBADecodingModule(EvidenceModule):
         # Import microarray gene expression data
         df_expression = self.resources.get("AllenHumanBrainAtlas").load_expression()
 
+        self.genes = df_expression.index.to_numpy()
+
         # Compute image-gene correlation matrix
         correlations = utils.correlate_matrices(x = df_expression.to_numpy(), 
                                                 y = df_voxels.to_numpy(),
@@ -69,16 +73,10 @@ class AHBADecodingModule(EvidenceModule):
 
         self.correlations = correlations
 
-        if gene_set is None:
-
-            order = np.argsort(correlations, axis = 0)[::-1]
-
-            correlations_ordered = np.take_along_axis(correlations, order, axis=0)
-
-            genes = df_expression.index.to_numpy()
-
-            genes_ranked = genes[order]
-
-
+        # if gene_set is None:
+        #     order = np.argsort(correlations, axis = 0)[::-1]
+        #     correlations_ordered = np.take_along_axis(correlations, order, axis=0)
+        #     genes = df_expression.index.to_numpy()
+        #     genes_ranked = genes[order]
 
         return
