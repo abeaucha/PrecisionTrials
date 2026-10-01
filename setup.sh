@@ -70,6 +70,11 @@ echo -e "\nInstalling MRIcrotome from Github..."
 conda run -n "$ENV_NAME" --no-capture-output Rscript -e 'devtools::install_github("Mouse-Imaging-Centre/MRIcrotome", upgrade = "never")'
 conda run -n "$ENV_NAME" --no-capture-output Rscript -e 'library(MRIcrotome); cat("MRIcrotome", as.character(packageVersion("MRIcrotome")), "installed successfully\n")'
 
+# Install fgsea from Bioconductor without updating unrelated packages.
+echo -e "\nInstalling fgsea from Bioconductor..."
+conda run -n "$ENV_NAME" --no-capture-output Rscript -e 'options(repos = c(CRAN = "https://cloud.r-project.org")); if (!requireNamespace("BiocManager", quietly = TRUE)) install.packages("BiocManager"); BiocManager::install("fgsea", ask = FALSE, update = FALSE)'
+conda run -n "$ENV_NAME" --no-capture-output Rscript -e 'library(fgsea); cat("fgsea", as.character(packageVersion("fgsea")), "installed successfully\n")'
+
 # Install Python utils and pyminc using pip
 echo -e "\nInstalling python packages using pip..."
 conda run -n "$ENV_NAME" --no-capture-output python -m pip install -r python_packages_pip.txt
