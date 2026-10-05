@@ -80,9 +80,12 @@ def extract_voxel_values(imgs, coords, n_jobs = 1):
     if n_jobs is not None and (not isinstance(n_jobs, int) or n_jobs < 1):
         raise ValueError("n_jobs must be a positive integer or None")
     if n_jobs == 1:
-        return [_extract_voxel_values(img, coords) for img in imgs]
+        res = [_extract_voxel_values(img, coords) for img in imgs]
+        return np.array(res, dtype=np.float64)
+        # return [_extract_voxel_values(img, coords) for img in imgs]
     with ProcessPoolExecutor(max_workers = n_jobs) as executor:
-        return list(executor.map(_extract_voxel_values, imgs, repeat(coords)))
+        res = list(executor.map(_extract_voxel_values, imgs, repeat(coords)))
+        return np.array(res, dtype = np.float64)
 
 
 def normalize_rows(values):
