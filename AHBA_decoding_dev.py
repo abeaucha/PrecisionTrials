@@ -1,4 +1,5 @@
 
+import sys
 import precision_trials.datasets.core as dat
 from precision_trials.datasets.imaging import EffectSizeImages
 from precision_trials.evidence import AHBADecodingModule
@@ -15,8 +16,9 @@ if __name__ == '__main__':
 
     AHBA_module = AHBADecodingModule()
 
-    AHBA_module.run(dataset, n_files = 5, n_jobs = 1)
+    AHBA_module.run(dataset, n_files = 5, n_jobs = 1, workdir = "AHBA_decoding_workdir")
 
+    sys.exit()
 
     correlations = AHBA_module.correlations
 
