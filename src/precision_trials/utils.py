@@ -1,7 +1,10 @@
 import os
 import re
+import shutil
 import subprocess
+import sys
 from numbers import Real
+from pathlib import Path
 
 import numpy as np
 import pandas as pd
@@ -10,12 +13,25 @@ from itertools import repeat
 from pyminc.volumes.factory import volumeFromFile
 
 
-def run_r_script(script, *, rscript_executable="Rscript", **kwargs):
+class RScriptError(subprocess.CalledProcessError):
+    """A subprocess failure that displays captured R diagnostics."""
+
+    def __str__(self):
+        return (
+            f"{super().__str__()}\n"
+            f"Working directory: {self.cwd}\n"
+            f"Rscript executable: {self.executable}\n"
+            f"R stderr:\n{self.stderr or '(empty)'}\n"
+            f"R stdout:\n{self.stdout or '(empty)'}"
+        )
+
+
+def run_r_script(script, *, rscript_executable=None, **kwargs):
     """Run an R script with optparse-style options and capture its output.
 
     ``script`` is a path (relative to the current working directory or absolute).
-    Rscript is found on PATH; activate the desired conda environment first, or
-    provide its executable path via ``rscript_executable``.
+    Prefer Rscript in Python's environment (sys.prefix/bin), falling back to
+    PATH. Provide ``rscript_executable`` to override this selection explicitly.
 
     Underscores in option names become hyphens. Strings, numbers, and paths
     become ``--name=value`` arguments. True adds a standalone flag (for
@@ -24,8 +40,9 @@ def run_r_script(script, *, rscript_executable="Rscript", **kwargs):
     Collections are rejected: serialize them in the format your R script uses.
 
     Returns a subprocess.CompletedProcess with text stdout and stderr. Raises
-    subprocess.CalledProcessError on a nonzero exit status; the exception also
-    contains stdout and stderr. Arguments are passed directly without a shell.
+    RScriptError (a subprocess.CalledProcessError) on a nonzero exit status;
+    its message includes stdout, stderr, the executable, and working directory.
+    Arguments are passed directly without a shell.
 
     Example::
 
@@ -33,22 +50,57 @@ def run_r_script(script, *, rscript_executable="Rscript", **kwargs):
         print(result.stdout)
         result = run_r_script("analysis.R", **{"batch_size": 100})
     """
-    command = [os.fspath(rscript_executable), os.fspath(script)]
+    # Prefer R installed alongside Python so debugger PATH differences do not
+    # accidentally select a system R with a different set of packages.
+    if rscript_executable is None:
+        environment_rscript = Path(sys.prefix) / "bin" / "Rscript"
+        rscript_executable = (
+            environment_rscript
+            if environment_rscript.is_file() and os.access(environment_rscript, os.X_OK)
+            else "Rscript"
+        )
+    
+    # Resolve executable names through PATH for informative error messages.
+    # Keep unresolved names so subprocess raises its usual FileNotFoundError.
+    executable = os.fsdecode(rscript_executable)
+    executable = shutil.which(executable) or executable
+    
+    # Pass separate arguments without a shell; paths and values need no quoting.
+    command = [executable, os.fspath(script)]
     for name, value in kwargs.items():
+    
+        # Translate Python keyword names to the R script's option convention.
         option = name.replace("_", "-")
         if not re.fullmatch(r"[A-Za-z][A-Za-z0-9-]*", option):
             raise ValueError(f"Invalid R option name: {name!r}")
+    
+        # Boolean switches are present or absent, rather than --option=True.
         if value is None or value is False:
             continue
         if value is True:
             command.append(f"--{option}")
         elif isinstance(value, (str, Real, os.PathLike)):
+            # The equals sign keeps each option and its scalar value together.
             value = os.fsdecode(value) if isinstance(value, os.PathLike) else str(value)
             command.append(f"--{option}={value}")
         else:
+            # Require callers to choose how collections or other objects serialize.
             raise TypeError(f"Unsupported value for {name!r}: {type(value).__name__}")
 
-    return subprocess.run(command, check=True, capture_output=True, text=True)
+    # Capture both streams as text and handle failures ourselves so the raised
+    # exception displays R's diagnostics instead of only the exit status.
+    cwd = os.getcwd()
+    result = subprocess.run(command, check=False, capture_output=True, text=True)
+    if result.returncode:
+        error = RScriptError(
+            result.returncode, result.args, output=result.stdout, stderr=result.stderr
+        )
+        # Record execution context to help diagnose relative paths and R selection.
+        error.cwd = cwd
+        error.executable = executable
+        raise error
+    
+    return result
 
 
 def _extract_voxel_values(img, coords):
@@ -122,4 +174,3 @@ def correlate_matrices(x, y, batch_size = None):
         correlations[:, start:stop] = correlations_batch
 
     return correlations
-
